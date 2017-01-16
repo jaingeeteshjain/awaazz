@@ -1,0 +1,17 @@
+ó
+ÄúëWc           @   s    d  Z  d e f d „  ƒ  YZ d S(   sÂ  
+# ================================================================================#
+#-- PROJECT NAME : Diarization package using i-vector clustering. 
+#-- BACKEND : LIUM Speaker Diarization
+#-- TASK : This is the configuration file, implemented as singleton. 
+		   This file has the paths for all dependencies
+
+#-- Author : Sruthi.S
+#-- Date : September 27th, 2016
+# ================================================================================#
+t   VConfc           B   s&   e  Z d  Z d Z d „  Z d „  Z RS(   s4   "Configuration for Voiceid, implemented as singletonc         O   s4   |  j  s- t t |  ƒ j |  | | Ž |  _  n  |  j  S(   N(   t   _VConf__instancet   superR    t   __new__(   t   clst   argst   kwargs(    (    s   voiceid_ilp/__init__.pyR      s    	c         O   sq   t  j |  | | Ž t |  _ t |  _ t |  _ d |  _ d |  _ d |  _	 d |  _
+ d |  _ d |  _ d |  _
+ d  S(   Ns   ./LIUM_SpkDiarization-8.4.1.jars   ./models/ubm.gmms   ./gmm_dbs   ./models/gender.gmmss   ./models/sms.gmmss   ./models/s.gmmst   srt(   t   objectt   __init__t   Falset
+   QUIET_MODEt   VERBOSEt   Truet   KEEP_INTERMEDIATE_FILESt   LIUM_JARt   UBM_PATHt   DB_DIRt   GENDER_GMMSt   SMS_GMMSt   S_GMMSt
+   OUTPUT_FORMAT(   t   selfR   R   (    (    s   voiceid_ilp/__init__.pyR	      s    									N(   t   __name__t
+   __module__t   __doc__t   NoneR   R   R	   (    (    (    s   voiceid_ilp/__init__.pyR       s   	N(   R   R   R    (    (    (    s   voiceid_ilp/__init__.pyt   <module>   s   
