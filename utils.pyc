@@ -1,0 +1,52 @@
+ó
+Í+êWc           @   sz   d  Z  d d l m Z d d l Z d d l Z e ƒ  Z d „  Z d „  Z d „  Z d „  Z	 d	 „  Z
+ d
+ „  Z d „  Z d S(   s¥  
+# ================================================================================#
+#-- PROJECT NAME : Diarization package using i-vector clustering. 
+#-- BACKEND : LIUM Speaker Diarization
+#-- TASK : This utility file contains modules for subprocess, threading and file checking.
+
+#-- Author : Sruthi.S
+#-- Date : September 27th, 2016
+# ================================================================================#
+i   (   t   VConfiÿÿÿÿNc         C   s8   d } x+ |  D]# } |  | j  ƒ  r
+ | d 7} q
+ q
+ W| S(   sœ   Check how much threads are running and alive in a thread dictionary
+
+    :type t: dictionary
+    :param t: thread dictionary like  { key : thread_obj, ... }i    i   (   t   is_alive(   t   t_dictt   numt   thr(    (    s   voiceid_ilp/utils.pyt
+   alive_threads   s
+    
+c         C   sd   |  GHt  j |  d t ƒ} | j ƒ  } | d k r` t d t | ƒ |  f ƒ } | | _ | ‚ n  d S(   s¯   Start a subprocess using the given commandline and check for correct
+    termination.
+
+    :type commandline: string
+    :param commandline: the command to run in a subprocesst   shelli    s&   Subprocess %s closed unexpectedly [%s]N(   t
+   subprocesst   Popent   Truet   waitt   OSErrort   strt   errno(   t   commandlinet   proct   retvalt   err(    (    s   voiceid_ilp/utils.pyt   start_subprocess   s    
+	c      
+   C   sd   t  j |  d t d t  j d t  j d t ƒ} | j ƒ  } | j ƒ  } | r` t  j | |  ƒ ‚ n  | S(   s3   Run a shell command and return the result as stringR   t   stdoutt   stderrt   universal_newlines(   R   R   R	   t   PIPEt   STDOUTt   communicatet   pollt   CalledProcessError(   t   commandt   processt   outputt   retcode(    (    s   voiceid_ilp/utils.pyt   check_cmd_output-   s    			c         C   sl   t  j j |  ƒ s% t d |  ƒ ‚ n  t  j j |  ƒ d k sP t d |  ƒ ‚ n  t  j j |  ƒ \ } } d S(   s   Ensure file exists and is not empty, otherwise raise an IOError.
+
+    :type filename: string
+    :param filename: file to checks.   File %s doesn't exist or not correctly createdi    s
+   File %s emptyN(   t   ost   patht   existst   IOErrort   getsizet   splitext(   t   filenamet	   shortnamet	   extension(    (    s   voiceid_ilp/utils.pyt   ensure_file_exists:   s    
+c         C   s†   d d l  } d } y) | j |  ƒ } | j ƒ  } | j ƒ  Wn | j k
+ rY } | GHt SX| d  d k r~ | d d	 k r~ t St Sd S(
+   so   Check if the wave is in correct format for LIUM.
+
+    :type filename: string
+    :param filename: file to checkiÿÿÿÿNi   i   i   i€>  s   not compressed(   i   i   i€>  (   s   not compressed(   t   wavet   Nonet   opent	   getparamst   closet   Errort   FalseR	   (   R&   R*   t   part   w_filet   exc(    (    s   voiceid_ilp/utils.pyt   is_good_waveG   s     c          C   s  t  t j ƒ t j j t j d ƒ }  t j j t j d ƒ } t j j t j d ƒ } t  t j ƒ t j j t j ƒ sŠ t j	 t j ƒ n  t j
+ t j ƒ g  k r± d t j GHn  t j j |  ƒ sÓ t j	 |  ƒ n  t j j | ƒ sõ t j	 | ƒ n  t j j | ƒ st j	 | ƒ n  d S(   s   Check for dependencies.t   Mt   Ft   Us.   WARNING: Gmm db directory found in %s is emptyN(   R)   t
+   CONFIGURATIONt   LIUM_JARR    R!   t   joint   DB_DIRt   UBM_PATHR"   t   makedirst   listdir(   t   dir_mt   dir_ft   dir_u(    (    s   voiceid_ilp/utils.pyt
+   check_depsZ   s     
+
+c         C   sR   t  |  d ƒ \ } }  t  | d ƒ \ } } d | | t |  ƒ t d |  ƒ d f S(   s›   Convert seconds into time format.
+
+    :type secs: integer
+    :param secs: the time in seconds to represent in human readable format
+           (hh:mm:ss)i<   s   %02d:%02d:%02d,%ss   %0.3fiýÿÿÿ(   t   divmodt   intR   (   t   secst   minst   hours(    (    s   voiceid_ilp/utils.pyt
+   humanize_timen   s    (
+   t   __doc__t    R    R    R   R8   R   R   R   R)   R4   RB   RH   (    (    (    s   voiceid_ilp/utils.pyt   <module>   s   				
+	
+		
