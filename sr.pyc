@@ -1,0 +1,616 @@
+ó
+k2îWc           @   sì   d  Z  d d l m Z d d l Z d d l Z d d l Z d d l Z d d l Z d d l Z d d l	 Z	 d d l
+ Z
+ d d l Z e ƒ  Z d e
+ f d „  ƒ  YZ d e
+ f d „  ƒ  YZ d e
+ f d	 „  ƒ  YZ d
+ „  Z d „  Z d „  Z d S(
+   s¯  
+# ================================================================================#
+#-- PROJECT NAME : Diarization package using i-vector clustering. 
+#-- BACKEND : LIUM Speaker Diarization
+#-- TASK : This module containing high level classes relatives to the speaker 
+		   recognition task
+
+#-- Author : Sruthi.S
+#-- Date : September 27th, 2016
+# ================================================================================#
+iÿÿÿÿ(   t   VConfNt   Segmentc           B   s†   e  Z d  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z	 d „  Z
+ d	 „  Z d
+ „  Z d „  Z
+ d „  Z d d
+ „ Z RS(   s¬   A Segment taken from a segmentation file, representing the smallest
+    recognized voice time slice.
+
+    :type line: string
+    :param line: the line taken from a seg filec         C   s¦   t  | d ƒ |  _ t | d ƒ |  _ t | d ƒ |  _ t | d ƒ |  _ t  | d ƒ |  _ t  | d ƒ |  _ t  | d ƒ |  _ t  | d ƒ |  _	 | |  _
+ d	 S(
+   sO   
+        :type line: string
+        :param line: the line taken from a seg filei    i   i   i   i   i   i   i   N(   t   strt	   _basenamet   intt   _onet   _startt	   _durationt   _gendert   _environmentt   _uuut   _speakert   _line(   t   selft   line(    (    s   voiceid_ilp/sr.pyt   __init__!   s    c         C   s
+   t  |  j ƒ S(   N(   R   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   __repr__/   s    c         C   s6   |  j  | j ƒ  k  r d S|  j  | j ƒ  k r2 d Sd S(   Niÿÿÿÿi   i    (   R   t	   get_start(   R
+   t   other(    (    s   voiceid_ilp/sr.pyt   __cmp__2   s
+    c         C   sB   | j  ƒ  |  j  ƒ  |  _ |  j | j ƒ  7_ |  j |  j d <d S(   sà   Merge two adjacent segments, the otr in to the original.
+        Do not use for segments that are not adjacent, it can have
+        odd behaviour.
+
+        :type otr: Segment
+        :param otr: the segment to be merged withi   N(   R   R   t   get_durationR   (   R
+   t   otr(    (    s   voiceid_ilp/sr.pyt   merge9   s    c         C   s   | |  j  d <|  _ d S(   s   Change the identifier of the segment.
+
+        :type identifier: string
+        :param identifier: the identifier of the speaker in the segmenti   N(   R   R   (   R
+   t
+   identifier(    (    s   voiceid_ilp/sr.pyt   renameD   s    c         C   s   |  j  S(   s?   Get the basename of the original file which belong the segment.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_basenameK   s    c         C   s   |  j  S(   s)   Get the start frame index of the segment.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyR   O   s    c         C   s   |  j  |  j S(   s'   Get the end frame index of the segment.(   R   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_endS   s    c         C   s   |  j  S(   s*   Get the duration of the segment in frames.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyR   W   s    c         C   s   |  j  S(   s   Get the gender of the segment.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt
+   get_gender[   s    c         C   s   |  j  S(   s#   Get the environment of the segment.(   R	   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_environment_   s    c         C   s   |  j  S(   s*   Get the speaker identifier of the segment.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_speakerc   s    c         C   s   |  j  S(   s5   Get the line of the segment in the original seg file.(   R   (   R
+   t   cluster(    (    s   voiceid_ilp/sr.pyt   get_lineg   s    N(   t   __name__t
+   __module__t   __doc__R   R   R   R   R   R   R   R   R   R   R   R   t   NoneR   (    (    (    s   voiceid_ilp/sr.pyR      s   												t   Clusterc           B   s  e  Z d  Z d d „ Z d „  Z d „  Z d „  Z d „  Z d „  Z	 d „  Z
+ d „  Z d	 „  Z d
+ „  Z
+ d „  Z d „  Z d
+ „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z e d „ Z d „  Z  d „  Z! RS(   s  A Cluster object, representing a computed cluster for a single
+    speaker, with gender, a number of frames and environment.
+
+    :type identifier: string
+    :param identifier: the cluster identifier
+
+    :type gender: char F, M or U
+    :param gender: the gender of the cluster
+
+    :type frames: integer
+    :param frames: total frames of the cluster
+
+    :type dirname: string
+    :param dirname: the directory where is the cluster wave file
+    
+    :type label: string
+    :param label: the cluster identifier
+    c         C   s–   | |  _  | |  _ d |  _ | |  _ | |  _ g  |  _ d | |  _ |  j d 7_ |  j d 7_ i  |  _ t	 |  _
+ | d |  _ | |  _ d |  _
+ d S(   s`  
+        :type identifier: string
+        :param identifier: the cluster identifier
+
+        :type gender: char F, M or U
+        :param gender: the gender of the cluster
+
+        :type frames: integer
+        :param frames: total frames of the cluster
+
+        :type dirname: string
+        :param dirname: the directory where is the cluster wave files    ;; cluster:%s [ score:FS = 0.0 ]s&    [ score:FT = 0.0 ] [ score:MS = 0.0 ]s    [ score:MT = 0.0 ]
+s   .wavN(   t   gendert   _framesR#   t   _envt   _labelR   t	   _segmentst   _seg_headert   speakerst   Truet
+   up_to_datet   wavet   dirnamet   value(   R
+   R   R%   t   framesR/   t   label(    (    s   voiceid_ilp/sr.pyR   €   s    						
+		
+	c         C   s   d |  j  |  j f S(   Ns   %s (%s)(   R(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   __str__Ÿ   s    c         C   s   |  j  j | ƒ d  S(   N(   R)   t   append(   R
+   t   segment(    (    s   voiceid_ilp/sr.pyt   add_segment¢   s    c         C   sM   |  j  s t d ƒ ‚ n  d |  j  |  _ |  j d 7_ |  j d 7_ |  j S(   Ns    no label defined for the Clusters    ;; cluster:%s [ score:FS = 0.0 ]s&    [ score:FT = 0.0 ] [ score:MS = 0.0 ]s    [ score:MT = 0.0 ]
+(   R(   t	   TypeErrorR*   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_seg_header¥   s    	c         C   s   |  j  S(   s   Return segments in Cluster(   R)   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_segments­   s    c         C   s.   x' |  j  D] } | j ƒ  | k r
+ | Sq
+ Wd S(   s   Return segment by start_timeN(   R)   R   R#   (   R
+   t
+   start_timet   seg(    (    s   voiceid_ilp/sr.pyt   get_segment±   s    c         C   s>   x7 |  j  D], } | j ƒ  | k r
+ |  j  j | ƒ t Sq
+ Wt S(   s   Remove segment by start_time(   R)   R   t   removeR,   t   False(   R
+   R:   R;   (    (    s   voiceid_ilp/sr.pyt   remove_segment¸   s
+    c         C   sR   t  | ƒ } | |  j k r+ | |  j | <n# |  j | | k  rN | |  j | <n  d S(   sP  Add a speaker with a computed score for the cluster, if a better
+        score is already present the new score will be ignored.
+
+        :type identifier: string
+        :param identifier: the speaker identifier
+
+        :type score: float
+        :param score: score computed between the cluster
+                wave and speaker modelN(   t   floatR+   (   R
+   R   t   scoret   val(    (    s   voiceid_ilp/sr.pyt   add_speakerÀ   s
+    
+c         C   s(   |  j  d k r! |  j ƒ  |  _  n  |  j  S(   sO   Set the right speaker for the cluster if not set and returns
+         its name.N(   R   R#   t   get_best_speaker(   R
+   (    (    s   voiceid_ilp/sr.pyR   Ñ   s    c         C   s   t  |  _ | |  _ d S(   s‰   Set the cluster speaker identifier 'by hand'.
+
+        :type identifier: string
+        :param identifier: the speaker name or identifierN(   R>   R-   R   (   R
+   R   (    (    s   voiceid_ilp/sr.pyt   set_speakerØ   s    	c         C   s=   y$ t  |  j j ƒ  ƒ t |  j ƒ SWn t k
+ r8 d SXd S(   sS   Get the mean of all the scores of all the tested speakers for
+         the cluster.g        N(   t   sumR+   t   valuest   lent   ZeroDivisionError(   R
+   (    (    s   voiceid_ilp/sr.pyt   get_meanà   s    $
+c         C   s   |  j  S(   s9   Get the cluster name assigned by the diarization process.(   R(   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_nameè   s    c         C   s  d } y t  |  j j ƒ  ƒ |  _ Wn t k
+ r> d |  _ n Xd } |  j ƒ  } t |  j j ƒ  ƒ d k r{ |  j ƒ  } n d } d } | d k r  | | } n | } |  j | k rø | d k rø x4 |  j D]& } |  j | |  j k rË | } PqË qË Wn  | d	 k r
+d } n  | S(
+   s7  Get the best speaker for the cluster according to the scores.
+         If the speaker'spk score is lower than a fixed threshold or is too
+         close to the second best matching voice,
+         then it is set as "unknown".
+
+         :rtype: string
+         :returns: the best speaker matching the cluster wavg     €@Àiœÿÿÿt   unknowni   g      à?i    iÿÿÿÿg\Âõ(\ß?gìQ¸…ë±?(   t   maxR+   RG   R0   t
+   ValueErrort   get_distanceRH   t   get_m_distance(   R
+   t   max_valR   t   distancet
+   mean_distancet   threst   spk(    (    s   voiceid_ilp/sr.pyRD   ì   s,    
+
+
+	c         C   s&   t  |  j j ƒ  d d „  d t ƒd  S(   sè   Get the best five speakers in the db for the cluster.
+
+        :rtype: array of tuple
+        :returns: an array of five most probable speakers represented by
+            ordered tuples of the form (speaker, score) ordered by score.t   keyc         S   s   |  \ } } | | f S(   N(    (   t   .0RV   RB   (    (    s   voiceid_ilp/sr.pyt   <lambda>  s    t   reversei   (   t   sortedR+   t	   iteritemsR,   (   R
+   (    (    s   voiceid_ilp/sr.pyt
+   get_best_five  s    	c         C   sŸ   i d d 6d d 6d d 6} t  } xK |  j D]@ } | j ƒ  } | |  j k r+ t } | | c | j ƒ  7<q+ q+ W| r” | d | d k r d Sd Sn |  j Sd S(   si   Get the computed gender of the Cluster.
+
+        :rtype: char
+        :returns: the gender of the clusteri    t   Mt   Ft   UN(   R>   R)   R   R%   R,   R   (   R
+   t   gent   differR;   t   ggg(    (    s   voiceid_ilp/sr.pyR     s    c         C   s^   |  j  j ƒ  } | j d t ƒ y  t | d ƒ t | d ƒ SWn t t f k
+ rY d SXd S(   sV   Get the distance between the best speaker score and the closest
+        speaker score.RY   i   i    iÿÿÿÿN(   R+   RG   t   sortR,   t   abst
+   IndexErrorRN   (   R
+   RG   (    (    s   voiceid_ilp/sr.pyRO   3  s     c         C   s   g  } g  } x8 |  j  D]- } | j | ƒ | j t |  j  | ƒ ƒ q Wd G| GHd G| GH| j t | ƒ ƒ } | | GH| | S(   sm    Gives the voice in the db which has least distance from the cluster
+        wav as the best matched speaker s
+   Speaker arrays   Value array(   R+   R4   Rd   t   indext   min(   R
+   t   SpeakRt   ValUet   speakert   ind(    (    s   voiceid_ilp/sr.pyt   _get_matched_speaker=  s    
+			c         C   s5   t  |  j j ƒ  ƒ } t t | ƒ t |  j ƒ  ƒ ƒ S(   sa   Get the distance between the best speaker score and the mean of
+        all the speakers' scores.(   RM   R+   RG   Rd   RJ   (   R
+   R0   (    (    s   voiceid_ilp/sr.pyRP   Q  s    c         C   s   |  j  | |  j d  ƒ d S(   s   Generate a segmentation file for the cluster.
+
+        :type filename: string
+        :param filename: the name of the seg fileiüÿÿÿN(   t   _generate_a_seg_fileR.   (   R
+   t   filename(    (    s   voiceid_ilp/sr.pyt   generate_seg_fileW  s    c         C   s‰   t  | d ƒ } | j |  j ƒ  ƒ |  j d j |  j ƒ  ƒ } | | d <d | d <|  j d | d <| j d t | ƒ ƒ | j ƒ  d S(   sA  Generate a segmentation file for the given showname.
+
+        :type filename: string
+        :param filename: the name of the seg file
+
+        :type first_col_name: string
+        :param first_col_name: the name in the first column of the seg file,
+               in fact the name and path of the corresponding wave filet   wi    i   i   i   s   %s %s %s %s %s %s %s %s
+N(	   t   opent   writeR8   R)   R   RK   R&   t   tuplet   close(   R
+   Rn   t   first_col_namet   f_descR   (    (    s   voiceid_ilp/sr.pyRm   ^  s    	
+
+c         C   s$   |  j  j | j  ƒ |  j  j ƒ  d S(   sq   Merge the Cluster with another.
+
+        :type other: Cluster
+        :param other: the cluster to be merged withN(   R)   t   extendRc   (   R
+   R   (    (    s   voiceid_ilp/sr.pyR   q  s    c         C   sI   |  j  j |  j | ƒ |  _  | |  _ x |  j D] } | j | ƒ q. Wd S(   s€   Rename the cluster and all the relative segments.
+
+        :type label: string
+        :param label: the new name of the clusterN(   R*   t   replaceR(   R)   R   (   R
+   R2   R;   (    (    s   voiceid_ilp/sr.pyR   y  s    	c         C   s¸   |  j  } |  j ƒ  } t j j | j d ƒ d | ƒ } t j | ƒ } | j ƒ  g  | D] } t j j | | ƒ ^ qW } t j j | j d ƒ d | d ƒ |  _ t	 j
+ | |  j ƒ d S(   s7   Take all the wave of a cluster and build a single wave.t   .i    s   .wavN(   R/   RK   t   ost   patht   joint   splitt   listdirRc   R.   t   fmt   merge_waves(   R
+   R/   t   namet   videoclustert	   listwavest   filt   listw(    (    s   voiceid_ilp/sr.pyR€   ƒ  s    	"
+()c         C   s±   |  j  } |  j ƒ  } t j j | | ƒ } y t j | ƒ } Wn t k
+ rQ t SXg  | D] } t j j | | ƒ ^ qY } x0 | D]( } t j j | ƒ t	 k r¥ q q t Sq Wt	 S(   s‘   Check if the wave files generated for the cluster are still
+        present. In case you load a json file you shold not have those
+        files.(
+   R/   RK   Rz   R{   R|   R~   t   OSErrorR>   t   isfileR,   (   R
+   R/   R   R‚   Rƒ   R„   R…   t   wav(    (    s   voiceid_ilp/sr.pyt   has_generated_wavesŽ  s    	
+(
+c         C   s   |  j  ƒ  } g  } x„ |  j D]y } | j ƒ  d } | | d <t | j ƒ  ƒ | d <t | j ƒ  ƒ | d <| j |  j ƒ  ƒ |  j | d <| j | ƒ q W| S(   s)   A dictionary representation of a Cluster.i   iÿÿÿÿi    i   i   (	   R   R)   R   R   R   R   R4   RK   R+   (   R
+   Rj   t   segsR;   t   tmp(    (    s   voiceid_ilp/sr.pyt   to_dict¡  s    
+
+c         C   s    g  } g  } x] |  j  D]R } | j t j t | j ƒ  ƒ d ƒ ƒ | j t j t | j ƒ  ƒ d ƒ ƒ q Wt | ƒ j d ƒ d j d ƒ d d d !| | f S(   s   Print cluster timing.id   t    iÿÿÿÿt   ]i    i   (	   R)   R4   t   utilst
+   humanize_timeR@   R   R   R   R}   (   R
+   t	   start_segt   end_segR;   (    (    s   voiceid_ilp/sr.pyt   print_segments¯  s    &*c         C   sm   t  |  j ƒ  ƒ } xT |  j D]I } | j ƒ  } | rD |  j | d <n
+ |  j | d <| d t | ƒ 7} q W| S(   s$   String representation of the segmentiÿÿÿÿs   %s %s %s %s %s %s %s %s
+(   R   R8   R)   R   R   R(   Rs   (   R
+   t   set_speakerst   resultR;   R   (    (    s   voiceid_ilp/sr.pyt
+   _get_seg_repr¸  s    
+c         C   s.   d } x! |  j  D] } | | j ƒ  7} q W| S(   s   Return cluster duration.i    (   R)   R   (   R
+   t   durR;   (    (    s   voiceid_ilp/sr.pyR   Ä  s    c         C   s"   t  j |  j ƒ } | |  j ƒ  f S(   N(   R   t
+   wave_durationR.   R   (   R
+   t   w_dur(    (    s   voiceid_ilp/sr.pyt   _verify_durationË  s    N("   R    R!   R"   R#   R   R3   R6   R8   R9   R<   R?   RC   R   RE   RJ   RK   RD   R\   R   RO   Rl   RP   Ro   Rm   R   R   R€   R‰   RŒ   R“   R,   R–   R   Rš   (    (    (    s   voiceid_ilp/sr.pyR$   l   s<   												)	
+		
+						
+						t   Voiceidc           B   sÙ  e  Z d  Z e d „  ƒ Z e d „  ƒ Z d „  Z d „  Z d „  Z d „  Z	 d „  Z
+ d „  Z d	 „  Z d
+ „  Z
+ d „  Z d „  Z d
+ „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z e d „ Z  d „  Z! d „  Z" d „  Z# e$ e$ d  „ Z% d! „  Z& d" „  Z' d# „  Z( d$ „  Z) e$ e$ d% d& „ Z* d1 e$ e$ d% d' d( „ Z, d) „  Z- d* „  Z. d+ e$ d, „ Z/ d- „  Z0 d. „  Z1 d1 d/ „ Z2 d0 „  Z3 RS(2   s‰  The main object that represents the file audio/video to manage.
+
+    :type db: object
+    :param db: the VoiceDB database instance
+
+    :type filename: string
+    :param filename: the wave or video file to be processed
+
+    :type single: boolean
+    :param single: set to True to force to avoid diarization (a faster
+           approach) only in case you have just a single speaker in the filec         C   s;   t  | d ƒ } t | j ƒ  ƒ } | j ƒ  t j |  | ƒ S(   sÓ   Build a Voiceid object from json file.
+
+        :type json_filename: string
+        :param json_filename: the file containing a json style python
+                dictionary representing a Voiceid object instancet   r(   Rq   t   evalt   readRt   R›   t	   from_dict(   t   vdbt
+   json_filenamet   opft   jdict(    (    s   voiceid_ilp/sr.pyt   from_json_fileÝ  s    
+c         C   sY  t  |  | d ƒ } t j j | d ƒ d } yx| d D]õ } | j | d ƒ } | s t | d | d d | | d ƒ } n  t | d t | d d	 ƒ t d	 | d
+ | d ƒ | d d d | d g ƒ } | j | ƒ | d | _	 y | j	 | d | _
+ Wn t k
+ rd
+ GHn X| j | d | ƒ q; WWn t
+ k
+ rTt d ƒ ‚ n X| S(   s¿   Build a Voiceid object from json dictionary.
+
+        :type json_dict: dictionary
+        :param json_dict: the json style python dictionary representing a
+            Voiceid object instancet   urli    t
+   selectionst   speakerLabelRj   R%   i   t	   startTimeid   t   endTimeR_   R+   s/   ERROR: For unknown speaker there is not a scores/   ERROR: Failed load dict, maybe in wrong format!(   R›   Rz   R{   t   splitextt   get_clusterR$   R   R   R6   R+   R0   t   KeyErrort   add_update_clusterRN   t	   Exception(   R    t	   json_dictt   vidR/   t   elmt   cluR;   (    (    s   voiceid_ilp/sr.pyRŸ   é  s*    
+
+
+	
+c         C   sÎ   i d d 6d d 6d d 6d d 6d	 d
+ 6|  _  i d d 6d d 6d
+ d 6d d 6d d
+ 6|  _ i  |  _ i  |  _ d |  _ d |  _ t |  _ | |  _ t	 j
+ | ƒ d |  _ |  _
+ |  j | ƒ d |  _ d |  _ d S(   s`  
+        :type vdb: object
+        :param vdb: the VoiceDB database instance
+
+        :type filename: string
+        :param filename: the wave or video file to be processed
+
+        :type single: boolean
+        :param single: set to True to force to avoid diarization (a faster
+        approach) only in case you have just a single speaker in the filet   file_loadedi    t   file_convertedi   t   diarization_donei   t	   trim_donei   s   speakers matchedi   t   converting_filet   diarizationt   trimmings   voice matchings   extraction finishedt    iK   N(   i   iK   (   t
+   status_mapt   working_mapt	   _clusterst   _matchedt   _extt   _timeR>   t   _interactivet   _dbR   t   ensure_file_existsR#   t	   _filenameR   t
+   _set_filenamet   _statust
+   _diar_conf(   R
+   R    Rn   (    (    s   voiceid_ilp/sr.pyR     s     
+						
+
+	c         C   s   |  j  j | ƒ S(   N(   R½   t   __getitem__(   R
+   RV   (    (    s   voiceid_ilp/sr.pyRÈ   #  s    c         C   s
+   |  j  j ƒ  S(   s+   Just iterate over the cluster's dictionary.(   R½   t   __iter__(   R
+   (    (    s   voiceid_ilp/sr.pyRÉ   &  s    c         C   s   |  j  S(   s½   Get the status of the computation.
+            0:'file_loaded',
+            1:'file_converted',
+            2:'diarization_done',
+            3:'trim_done',
+            4:'speakers matched'(   RÆ   (   R
+   (    (    s   voiceid_ilp/sr.pyt
+   get_status*  s    c         C   s   |  j  |  j ƒ  S(   s×   
+        Get a string representation of the working status.
+            0:'converting_file',
+            1:'diarization',
+            2:'trimming',
+            3:'voice matching',
+            4:'extraction finished'(   R¼   RÊ   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_working_status3  s    	c         C   s   |  j  S(   s   Get the VoiceDB instance used.(   RÂ   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_db>  s    c         C   s   |  j  S(   N(   RÁ   (   R
+   (    (    s   voiceid_ilp/sr.pyt   _get_interactiveC  s    c         C   s
+   | |  _  d  S(   N(   RÁ   (   R
+   R0   (    (    s   voiceid_ilp/sr.pyt   _set_interactiveF  s    c         C   s   |  j  S(   s2   Get the clusters recognized in the processed file.(   R½   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_clustersI  s    c         C   s
+   | |  _  d  S(   N(   R½   (   R
+   R0   (    (    s   voiceid_ilp/sr.pyt
+   _set_clustersM  s    c         C   s   |  j  S(   N(   RÀ   (   R
+   (    (    s   voiceid_ilp/sr.pyt	   _get_timeP  s    c         C   s
+   | |  _  d  S(   N(   RÀ   (   R
+   R0   (    (    s   voiceid_ilp/sr.pyt	   _set_timeS  s    c         C   sÿ   d j  | j ƒ  ƒ } d } t j j } xB | D]: } | j ƒ  s[ | d d d | d g k r. | | 7} q. q. Wy t j | | ƒ WnA t j k
+ rÃ } d | | f } t	 | ƒ | k rº qÄ | ‚ n Xt
+ j | ƒ | |  _ t j j
+ |  j ƒ \ |  _ |  _ d S(   s,   Set the filename of the current working filet   _Rº   Ry   t   :t   -s   `%s` and `%s` are the same fileN(   R|   R}   Rz   R{   t   sept   isalnumt   shutilt   copyt   ErrorR   R   RÃ   RÄ   Rª   R   R¿   (   R
+   Rn   t   tmp_filet   new_filet   pathsept   chart   errt   msg(    (    s   voiceid_ilp/sr.pyRÅ   V  s     
+'
+
+	c         C   s   |  j  S(   N(   R¾   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_matched_speakerj  s    c         C   s   |  j  S(   s)   Get the name of the current working file.(   RÄ   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_filenamem  s    c         C   s   |  j  S(   s-   Get the basename of the current working file.(   R   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_file_basenameq  s    c         C   s   |  j  S(   s.   Get the extension of the current working file.(   R¿   (   R
+   (    (    s   voiceid_ilp/sr.pyt   get_file_extensionu  s    c         C   s(   y |  j  | SWn t k
+ r# d SXd S(   s   Get a the cluster by a given label.
+
+        :type label: string
+        :param label: the cluster label (i.e. S0, S12, S44...)N(   R½   R¬   R#   (   R
+   R2   (    (    s   voiceid_ilp/sr.pyR«   y  s    
+c         C   s   | |  j  | <d S(   sÐ   Add a cluster or update an existing cluster.
+
+        :type label: string
+        :param label: the cluster label (i.e. S0, S12, S44...)
+
+        :type cluster: object
+        :param cluster: a Cluster objectN(   R½   (   R
+   R2   R   (    (    s   voiceid_ilp/sr.pyR­   ƒ  s    c         C   s   |  j  | =d S(   sx   Remove and delete a cluster.
+
+        :type label: string
+        :param label: the cluster label (i.e. S0, S12, S44...)N(   R½   (   R
+   R2   (    (    s   voiceid_ilp/sr.pyt   remove_cluster  s    c         C   s9   g  } x, |  j  D]! } | j |  j  | j ƒ  ƒ q W| S(   sŸ   Return the time slices with all the information about start time,
+        duration, speaker name or "unknown", gender and sound quality
+        (studio/phone).(   R½   Rw   RŒ   (   R
+   t   totR²   (    (    s   voiceid_ilp/sr.pyt   get_time_slices”  s    c         C   s5   d } x( |  j  D] } | |  j  | j ƒ  7} q W| S(   s7   Return the duration of all the time slices in the audioi    (   R½   R   (   R
+   R—   R²   (    (    s   voiceid_ilp/sr.pyR   ž  s    c         C   s/   x( |  j  D] } | GH|  j  | j ƒ  GHq
+ Wd  S(   N(   R½   Rš   (   R
+   R²   (    (    s   voiceid_ilp/sr.pyRš   ¥  s    c         C   s/   i  } x" |  D] } |  | j  ƒ  | | <q
+ W| S(   s8   A dictionary map between speaker label and speaker name.(   R   (   R
+   R+   R²   (    (    s   voiceid_ilp/sr.pyt   get_speakers_map«  s    
+c         C   sM   d |  _  t j |  j ƒ  ƒ } | |  j ƒ  k r@ |  j | ƒ n  d |  _  d S(   s]   In case the input file is a video or the wave is in a wrong format,
+         convert to wave.i    i   N(   RÆ   R   t   file2wavRâ   RÅ   (   R
+   t   fname(    (    s   voiceid_ilp/sr.pyt   _to_wav²  s
+    	c         C   sh   d } x+ |  j  D]  } | |  j  | j | ƒ 7} q Wt |  j ƒ  d d ƒ } | j | ƒ | j ƒ  d S(   s]   Generate a seg file according to the information acquired about the
+        speech clusteringRº   s
+   .ev_is.segRp   N(   R½   R–   Rq   Rã   Rr   Rt   (   R
+   R”   R•   R²   t   f_seg(    (    s   voiceid_ilp/sr.pyRo   »  s    
+c         C   sF   d |  _  t j |  j t |  j d ƒ t |  j d ƒ ƒ d |  _  d S(   s¢   Run the diarization process. In case of single mode (single speaker
+        in the input file) just create the seg file with silence and gender
+        detection.i   i    i   N(   RÆ   R   R¸   R   R   RÇ   (   R
+   (    (    s   voiceid_ilp/sr.pyR¸   Å  s    	c         C   s&   d |  _  t j |  j ƒ d |  _  d S(   sf   Trim the wave input file according to the segmentation in the seg
+        file. Run after diarization.i   i   N(   RÆ   R   t   seg2trimR   (   R
+   (    (    s   voiceid_ilp/sr.pyt   _to_trimÎ  s    	c         C   s   t  |  j d |  j ƒ d  S(   Ns
+   .ev_is.seg(   t   extract_clustersR   R½   (   R
+   (    (    s   voiceid_ilp/sr.pyt   _extract_clustersÕ  s    c         C   sÐ  |  j  ƒ  } xC |  j D]8 } |  | j ƒ  |  | j t j j | | d ƒ ƒ q Wi  } x; |  j D]0 } t j j | | ƒ d } |  | j | | <qb W|  j ƒ  j	 | ƒ } d „  } xK | D]C }	 | |	 ƒ } x. | |	 D]" }
+ |  | j
+ |
+ | |	 |
+ ƒ qØ Wq» W| sd GHn  i  } x³ |  j D]¨ } | sT| rTd GHd G| GH|  | j ƒ  qTn  |  | j ƒ  | | <|  | j
+ | | ƒ | t k r |  j t ƒ t | | | | ƒ | | <}
+ |  | j
+ |
+ ƒ q q Wd S(   s   Match for voices in the dbs
+   .ev_is.segs   .wavc         S   s$   |  j  t j j ƒ d j  d ƒ d S(   NiÿÿÿÿRy   i    (   R}   Rz   R{   RÖ   (   Rˆ   (    (    s   voiceid_ilp/sr.pyt   wav_to_clusteræ  s    Rº   s"   **********************************s   speaker N(   Rã   R½   R€   Ro   Rz   R{   R|   R%   RÌ   t
+   voices_lookupRC   R“   RD   RE   R,   RÎ   t   _interactive_training(   R
+   t   interactivet   quiett   basenameR   t	   wav_filest   filebasenameR•   Rñ   RU   Rœ   R+   R²   t   best(    (    s   voiceid_ilp/sr.pyt   _match_clustersØ  s>    	
+$		
+c         C   sŽ   g  } |  j  j ƒ  } x' | D] } | j |  j  j | ƒ ƒ q Wd } xB | D]: } d t | ƒ } | j | ƒ | |  j  | <| d 7} qL Wd S(   s!   Rename all clusters from S0 to Sni    t   Si   N(   R½   RÙ   R4   t   popR   R   (   R
+   t   all_clusterst
+   temp_clustersR²   t   idxR2   (    (    s   voiceid_ilp/sr.pyt   _rename_clusters  s    
+
+
+
+c         C   se   d } d } | | k  r' | } | } n | } | } |  j  | ƒ } |  j j | ƒ } | j | ƒ d S(   s'   Merge two clusers and delete the secondRº   N(   R«   R½   Rü   R   (   R
+   t   cl1t   cl2R2   t	   to_deletet   to_keept	   to_remove(    (    s   voiceid_ilp/sr.pyt   _merge_clusters  s    	c         C   s;  |  j  j ƒ  } g  } xB | D]: } | | j ƒ  } x! | D] } | j | | f ƒ q9 Wq W| j ƒ  g  } | j i  ƒ d } d  } x| D]ü } | }	 | r| d }
+ |	 d } |	 d } |
+ | k rL| | | k rg  | | | <| | | j | | d g ƒ q|y | | | j | ƒ Wq|t k
+ rH| | | j | ƒ q|Xqt	 | | ƒ d k r| d 7} | j i  ƒ qn  |	 } qŠ Wxª | D]¢ }
+ x™ |
+ D]‘ } |
+ | j d t
+ ƒ d  } xn |
+ | D]b } | j ƒ  } |  j | ƒ j
+ | ƒ } | r%| j | ƒ |  j | ƒ j | j ƒ  ƒ n  | } qÉWqžWq‘Wd  S(   Ni    i   RY   (   R½   RÙ   R9   R4   Rc   R#   Rw   Rf   RN   RH   R,   R   R«   R<   R   R?   (   R
+   t   clusterst   all_segsR²   t   c_segsR;   t   to_mergeRÿ   t   prevt   currentt	   p_clusterR   R5   t	   groupdictt   cluster_keyt   current_segt	   seg_start(    (    s   voiceid_ilp/sr.pyt   _automerge_segments!  sT    
+
+
+
+
+
+
+
+"
+
+
+
+	
+c      	   C   s  |  j  ƒ  j ƒ  } t } x¦ | D]ž } | | } x‹ | D]ƒ } | | } | | k r6 | j ƒ  d k r6 | j ƒ  | j ƒ  k r6 |  j j | ƒ r6 |  j j | ƒ r6 t } |  j | | ƒ q6 q6 Wq W| r|  j ƒ  t	 j
+ |  j ƒ  ƒ |  j d t ƒ |  j
+ ƒ  n  d S(   s@   Check for Clusters representing the same speaker and merge them.RL   R”   N(   RÏ   RÙ   R>   R   R½   t   has_keyR,   R  R   RØ   t   rmtreeRã   Ro   Rî   (   R
+   Rý   t   changedt   cl_1t   c_c1t   cl_2t   c_c2(    (    s   voiceid_ilp/sr.pyt   automerge_clusterse  s    
+
+
+
+Z
+i   c         C   sá   | d k  r d } n  |  j  ƒ  j | ƒ d |  _ t j ƒ  } | sQ |  j ƒ  GHn  |  j ƒ  | so |  j ƒ  GHn  |  j ƒ  t j ƒ  | } | s |  j ƒ  GHn  |  j ƒ  d |  _ | sÄ |  j ƒ  GHn  |  j | | | | | ƒ d S(   sX  Identify the speakers in the audio wav according to a speakers
+        database. If a speaker doesn't match any speaker in the database then
+        sets it as unknown. In interactive mode it asks the user to set
+        speakers' names.
+
+        :type interactive: boolean
+        :param interactive: if True the user must interact to give feedback or
+                train the computed clusters voices
+
+        :type quiet: boolean
+        :param quiet: silent mode, no prints in batch mode
+
+        :type thrd_n: integer
+        :param thrd_n: max number of concurrent threads for voice db matchesi   i    i   N(	   RÌ   t   set_maxthreadsRÆ   t   timeRË   Rë   R¸   Rî   t   _cluster_matching(   R
+   Rô   Rõ   t   thrd_nR:   t   diarization_time(    (    s   voiceid_ilp/sr.pyt   extract_speakers~  s(    		
+
+
+	i    c      	   C   s€  |  j  ƒ  } |  j ƒ  |  j | | ƒ d |  _ t j | d ƒ } t j ƒ  | } |  j | ƒ | ss |  j ƒ  GHn  | r” d GH|  j	 | d t
+ ƒn  | s|| s|d GH|  j GHxó |  j D]è }	 d GHd G|	 GHx/ |  |	 j D]  }
+ d |
+ |  |	 j |
+ f GHqÙ Wd	 GH|  |	 j
+ ƒ  } y$ |  |	 j ƒ  } |  |	 j ƒ  }
+ Wn# t t f k
+ r[d
+ } d
+ }
+ n Xd |  |	 | | |
+ f GHd |  |	 j ƒ  GH|  |	 j ƒ  |  j |	 <q· W|  j ƒ  j ƒ  } t | d
+ ƒ t | d ƒ t | d ƒ } | d k rLt | | ƒ } | t | ƒ } d t j | ƒ | t j | ƒ | t j | ƒ | | | f GHqyd t j | ƒ | t j | ƒ | | f GHq|n  d S(   s   Match for voices in the dbi   s   .wavs   Updating dbt	   automerges   self._clusterss"   **********************************s   speaker s   	 %s %ss   	 ------------------------i    sM   	 best speaker: %s (distance from 2nd %f - mean %f - distance from mean %f ) s   Best matched speaker: %sR^   R]   R_   sp   
+wav duration: %s
+all done in %dsec (%s) (diarization %dsec time:%s )  with %s threads and %d voices in db (%f) sY   
+wav duration: %s
+match clusters done in %dsec (%s)  with %s threads and %d voices in db N(   Rã   Rð   Rú   RÆ   R   R˜   R  RÒ   RË   t	   update_dbR,   R½   R+   RO   RJ   RP   R¬   RN   Rl   R¾   RÌ   t   get_speakersRH   R#   R@   R   R   (   R
+   R  Rô   Rõ   R  t   start_tRö   t   sect
+   total_timeR²   Rj   RR   t   meant
+   m_distancet   speakers_in_dbt
+   tot_voicest
+   voice_timet   t_f_s(    (    s   voiceid_ilp/sr.pyR  ©  sf    
+	
+	
+
+,c         C   sH   |  j  ƒ  j | | | ƒ } x& | D] } |  | j | | | ƒ q" Wd S(   s9   A wrapper to match the voices each in a different Thread.N(   RÌ   t   match_voiceRC   (   R
+   R   t   wav_namet   db_entryR%   t   resultst   res(    (    s   voiceid_ilp/sr.pyt   _match_voice_wrapperì  s    
+c         C   s%   | d k r d |  _  n	 d |  _  d S(	   s1   Set a diarization configuration for noisy videos i    i   g      ø?i   gffffffö?N(   i   g      ø?(   i   gffffffö?(   RÇ   (   R
+   t   mode(    (    s   voiceid_ilp/sr.pyt   set_noise_modeò  s    i   c            s²  d „  ‰  ‡  ‡ ‡ f d †  } i  } t  j j |  j ƒ  d ƒ sS |  j d t ƒ n  x|  j j ƒ  D]‰ ˆ j t k rc ˆ j	 ƒ  } ˆ j
+ ƒ  ‰ ˆ d k rE| d k rEy~ | ˆ j k r%ˆ j | } x[ ˆ j D]M } | | k rÑ ˆ j | } t t | ƒ t | ƒ ƒ d k  r| ‰ qqÑ qÑ Wn  WqEd t
+ ˆ j ƒ GHqEXn  |  j ƒ  }	 ˆ  | |	 ƒ }
+ |
+ d } ˆ j ƒ  s|  j ƒ  |  j ƒ  n  ˆ j ƒ  y$ t j ˆ j | ƒ t j | ƒ Wn t k
+ rÓd	 GHn Xy t j |
+ d ƒ Wn% t k
+ rˆ j |
+ d |
+ ƒ n Xˆ j ƒ  } t j d
+ | d |  |
+ | |	 | ˆ f ƒ | | <| | j ƒ  t ˆ _ qc qc Wx/ | D]' }
+ | |
+ j ƒ  rp| |
+ j  ƒ  qpqpW| r®|  j! ƒ  n  d S(
+   s%  Update voice db after some changes, for example after a train
+        session.
+
+        :type t_num: integer
+        :param t_num: number of contemporary threads processing the update_db
+
+        :type automerge: boolean
+        :param automerge: true to do the automerge or false to not do itc         S   sÉ   d } t  j j | |  ƒ }  |  d } t  j j | ƒ r x` t r{ |  d t | ƒ d } t  j j | ƒ sn Pn  | d } q: Wn t |  d d ƒ j ƒ  |  St |  t | ƒ d d ƒ j ƒ  |  t | ƒ S(   s    Find a non taken wave (base)namei    s   .wavRº   i   Rp   (   Rz   R{   R|   t   existsR,   R   Rq   Rt   (   R2   t   basedirt   contR.  (    (    s   voiceid_ilp/sr.pyt   _get_available_wav_basename  s    
+	!c            sŸ  y t  j | d ƒ Wn) t k
+ r@ |  | j | d | ƒ n Xt  j | d ƒ |  | j } | d k r¹ |  j ƒ  j | | |  | j |  | j ƒ |  j | | d | |  | j ƒ n  |  j	 ƒ  } ˆ  ˆ | ƒ } | d }	 | | k rè| d k rèˆ j
+ ƒ  s|  j ƒ  |  j ƒ  n  ˆ j
+ ƒ  y$ t j ˆ j |	 ƒ t  j |	 ƒ Wn t k
+ r_d GHn Xy t  j | d ƒ Wn% t k
+ rœˆ j | d | ƒ n X|  j ƒ  j | | | |  | j ƒ }
+ |
+ rè|  | j } | j | ƒ qèn  | d k r|  | j | ƒ n  t j s›yn t j d | ƒ t j d | ƒ t j d | ƒ t j j |	 ƒ r~t j d |	 ƒ t j | d ƒ n  Wq›t k
+ r—d	 GHq›Xn  d
+ S(   s)   A procedure to wrap the model building to run in a Thread 
+            :type wave_b: string
+            :param wave_b: path for the wave renamed with the current speaker name
+            :type cluster: string
+            :param cluster: the cluster label
+            :type wave_dir: string
+            :param wave_dir: basename for the wave
+            :type new_speaker: string
+            :param new_speaker: the current speaker name
+            :type old_speaker: string
+            :param old_speaker: the old speaker name
+            
+            s
+   .ev_is.segs   .wavRL   s'   WARNING: error renaming some wave filess   %s.ev_is.segs   %s.init.gmms   %s.wavs   %ss/   WARNING: error deleting some intermediate filesN(   R   RÃ   t   IOErrorRm   R0   RÌ   t	   add_modelR%   R2  Rã   R‰   Rë   Rî   R€   RØ   t   moveR.   R†   t   remove_modelR+   Rü   RE   t
+   CONFIGURATIONt   KEEP_INTERMEDIATE_FILESRz   R=   R{   R5  (   R
+   t   wave_bR   t   wave_dirt   new_speakert   old_speakert   old_cluster_valuet   old_basenamet
+   old_b_filet   old_wav_namet   removedt   a(   R8  R²   t   old_s(    s   voiceid_ilp/sr.pyt   _build_model_wrapper  s^    
+
+	
+
+
+
+
+	
+
+ 	
+s
+   .ev_is.segR”   RL   gìQ¸…ë±?s	   updatedb s   .wavs'   WARNING: error renaming some wave filest   targett   argsN("   Rz   R{   R5  Rã   Ro   R>   R½   RG   R-   R   RD   R+   Rd   R   R‰   Rë   Rî   R€   RØ   R;  R.   R   RÃ   R†   R9  Rm   RK   t	   threadingt   Threadt   startR,   t   is_aliveR|   R  (   R
+   t   t_numR!  RJ  t   thrdst   current_speakert	   c_s_scoret   st   s_scoreRö   t   b_fileR.  t
+   cluster_labelt   thr(    (   R8  R²   RI  s   voiceid_ilp/sr.pyR"  ù  sf    
+	R 
+
+"	
+
+
+
+
+	
+	
+c         C   sX   d } d } x7 |  j  ƒ  D]) } | d | d | d | d f 7} q Wd } | | | S(   sÌ   Return the Adobe XMP representation of the information about who is
+        speaking and when. The tags used are Tracks and Markers, the ones used
+        by Adobe Premiere for speech-to-text information.sü  <?xml version="1.0"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/" x:xmptk="XMP Core 4.4.0">
+    <rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+    <rdf:Description  xmlns:xmpDM="http://ns.adobe.com/xmp/1.0/DynamicMedia/">
+            <xmpDM:Tracks>
+                <rdf:Bag>
+                    <rdf:li>
+                        <rdf:Description
+                         xmpDM:trackName="Speaker identification">
+                            <xmpDM:markers>
+                                <rdf:Seq>Rº   s  
+                                    <rdf:li
+                                     xmpDM:startTime="%seg"
+                                     xmpDM:duration="%seg"
+                                     xmpDM:speaker="%seg"
+                                     /> i    i   iþÿÿÿs  
+                                </rdf:Seq>
+                            </xmpDM:markers>
+                        </rdf:Description>
+                    </rdf:li>
+                </rdf:Bag>
+            </xmpDM:Tracks>
+        </rdf:Description>
+    </rdf:RDF>
+</x:xmpmeta>
+(   Rç   (   R
+   t   initial_tagst   inner_stringR;   t
+   final_tags(    (    s   voiceid_ilp/sr.pyt
+   to_xmp_string¬  s    )$c         C   s¹   i |  j  ƒ  d 6|  j d 6|  j ƒ  j ƒ  d 6g  d 6} x{ |  j ƒ  D]m } | d j i t | d ƒ d d 6t | d ƒ d d	 6| d
+ d 6| d d
+ 6| d d 6| d d 6ƒ qD W| S(   s<   Return a JSON representation for the clustering information.t   durationR¥   t   dbR¦   i    g      Y@R¨   i   R©   iþÿÿÿRj   iÿÿÿÿR§   i   R%   i   R+   (   R   RÄ   RÌ   t   get_pathRç   R4   R@   (   R
+   t   dicR;   (    (    s   voiceid_ilp/sr.pyRŒ   í  s    (
+
+
+c         C   sk   | s |  j  ƒ  } n  d } |  j r- d } n  t |  j ƒ  | d d ƒ } | j t | ƒ ƒ | j ƒ  d S(   sA   Write to file the json dictionary representation of the Clusters.Rº   s   .interactives   .jsonRp   N(   RŒ   RÁ   Rq   Rã   Rr   R   Rt   (   R
+   t
+   dictionaryt   prefixt	   file_json(    (    s   voiceid_ilp/sr.pyt
+   write_json$  s    		c         C   s¸   | d k rP |  j  ƒ  y t j |  j ƒ  d ƒ Wn d GHn X|  j  t ƒ n  | d k ri |  j ƒ  n  | d k r´ t |  j ƒ  d d ƒ } | j t |  j	 ƒ  ƒ ƒ | j
+ ƒ  n  d S(	   s¿   Write to file (basename.extension, for example: myfile.srt) the
+        output of the recognition process.
+
+        :type mode: string
+        :param mode: the output format: srt, json or xmpt   srts
+   .ev_is.segs   File seg do not exist!t   jsont   xmps   .xmpRp   N(   Ro   R   t   seg2srtRã   R>   Re  Rq   Rr   R   R]  Rt   (   R
+   R3  t   file_xmp(    (    s   voiceid_ilp/sr.pyt   write_output/  s    
+	
+N(4   R    R!   R"   t   staticmethodR¤   RŸ   R   RÈ   RÉ   RÊ   RË   RÌ   RÍ   RÎ   RÏ   RÐ   RÑ   RÒ   RÅ   Rá   Râ   Rã   Rä   R«   R­   Rå   Rç   R   Rš   Rè   Rë   R,   Ro   R¸   Rî   Rð   R>   Rú   R   R  R  R  R   R#   R  R2  R4  R"  R]  RŒ   Re  Rk  (    (    (    s   voiceid_ilp/sr.pyR›   Ð  s^   																			
+	
+		
+					
+				.	
+		D	+B		³	A	7c         C   s  d G|  GHd G| GHd G| GHt  d |  | f d ƒ } x%| D]} | j d ƒ r; d G| GH| j d ƒ d	 j d
+ ƒ } d G| GHy | \ } } Wn | d } n X| j d
+ | ƒ t d
+ | d ƒ } | j d | ƒ d }	 | | |	 !}
+ d G| GHd G|
+ GH| | k r,d GHt | d d d | ƒ | | <n  | | j | d
+ | j d ƒ d |
+ ƒ q; q; W| j ƒ  t j	 s‰t
+ j d |  | f ƒ n  d S(   sŠ   Take all the files created by the call of wav_vs_gmm() on the whole
+    speakers db and put all the results in a bidimensional dictionary.Rn   t   gmmR  s   %s.ident.%s.ev_is.segRœ   s   ;;R   R   i   RÓ   t
+   splitted_linei    s   score:s    = RŽ   i   Rj   R0   t   HERER_   t   0Rº   Ry   iþÿÿÿN(   Rq   t
+   startswithR}   Rf   RH   R$   RC   Rt   R=  R>  Rz   R=   (   Rø   Rm  R  t   seg_fR   Rn  R   Rj   Rÿ   t   iidxR0   (    (    s   voiceid_ilp/sr.pyt   manage_identE  s2    			
+		%
+		0
+	c         C   s  |  GHt  |  d ƒ } d } | j ƒ  } | j ƒ  xÙ | D]Ñ } | j d ƒ s7 | j ƒ  } | d } | | k r¬ t d d d d d d	 d
+ t j j	 |  ƒ d	 d | ƒ | | <n  | | j
+ j t | ƒ ƒ | | j
+ t | d ƒ 7_
+ | d
+ | | _ | d | | _ q7 q7 Wd S(   s&   Read _clusters from segmentation file.Rœ   s   ;;iÿÿÿÿR   RL   R%   R_   R1   i    R/   R2   i   i   i   N(   Rq   R#   t	   readlinesRt   Rq  R}   R$   Rz   R{   Rª   R)   R4   R   R&   R   R%   R'   (   t   segfilenameR  Rì   t   last_clustert   rowsR   t
+   speaker_id(    (    s   voiceid_ilp/sr.pyRï   b  s(    
+
+
+	
+c      	   C   sƒ  d' } d' } | d k r! d } n d | d } | GHxHt r~y t d d ƒ } Wn t k
+ rl d GHq7 n Xd GH| d' k r | j ƒ  d' k r | j ƒ  n  | d k rœt |  d	 | ƒ } t j | ƒ } g  | D] } t j	 j
+ | | ƒ ^ qÓ }	 d
+ j
+ |	 ƒ }
+ d t |
+ ƒ } t j d k rGd
+ t |
+ ƒ } | j
+ d d ƒ } n  d | GHt j | ƒ } t j | d t j d t j d t j ƒ} t j d ƒ q7 n  | d k rft }
+ x¯ |
+ s_t d d ƒ } x„ t rMt | ƒ d k rëd } n  | j ƒ  s d GHPn  t d | d ƒ } | d( k r$| S| d) k r4Pn  | d* k rÊt }
+ PqÊqÊW|
+ s±d% GHq±q±Wq7 n  | d k rv| Sd& GHq7 Wd' S(+   sW   A user interactive way to set the name to an unrecognized voice of a
+    given cluster.RL   s+   The system has not identified this speaker!s'   The system identified this speaker as 's   '!s   
+ 1) Listen
+ 2) Set s    name
+ Press enter to skip
+> Rº   t   1t   /R   s   play t   win32s   vlc s   \s   \\s     Listening %s...t   stdint   stdoutt   stderri   t   2s   Type speaker name s$   or leave blank for unknown speaker: i    s.   No blank, dash or special chars allowed! Retrys	   Save as 's   '? [Y/n/m] t   yt   yet   yest   nt   not   nopt   nopet   mt   menus   Yes, no or menu, please!s"   Type 1, 2 or enter to skip, pleaseN(   R  R‚  s   yesRº   (   R„  s   nos   nops   nope(   Rˆ  s   menu(   R#   R,   t	   raw_inputt   EOFErrort   pollt   killR   Rz   R~   R{   R|   t   syst   platformRx   t   shlexR}   t
+   subprocesst   PopenR=  t   output_redirectR  t   sleepR>   RH   R×   (   Rø   R   R   t   infot   prcRÞ   R‚   Rƒ   t   fR…   t   wrdt   commandlineRL  R‰  R   t   okk(    (    s   voiceid_ilp/sr.pyRó   z  sr    		
+
+(		
+	
+		(   R"   R   R    R   R   Rz   R  RØ   R‘  RŽ  RM  R  R=  t   objectR   R$   R›   Rt  Rï   Ró   (    (    (    s   voiceid_ilp/sr.pyt   <module>   s(   	Rÿ eÿ ÿ ÿ x		
