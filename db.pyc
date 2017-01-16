@@ -1,0 +1,285 @@
+ó
+ŒâëWc           @   sž   d  Z  d d l m Z d d l m Z m Z m Z d d l Z d d l Z d d l	 Z	 d d l
+ Z
+ d d l Z d e f d „  ƒ  YZ
+ d e
+ f d	 „  ƒ  YZ d S(
+   sˆ  
+# ================================================================================#
+#-- PROJECT NAME : Diarization package using i-vector clustering. 
+#-- BACKEND : LIUM Speaker Diarization
+#-- TASK : This module contains the voice DB relative classes
+
+#-- Author : Sruthi.S
+#-- Date : September 27th, 2016
+# ================================================================================#
+iÿÿÿÿ(   t   DivisionByZeroi   (   t   srt   utilst   fmNt   VoiceDBc           B   se   e  Z d  Z d „  Z d „  Z d „  Z d „  Z d
+ d
+ d „ Z d „  Z	 d „  Z
+ d „  Z d	 „  Z RS(   sl   A class that represent a generic voice models db.
+
+    :type path: string
+    :param path: the voice db pathc         C   s2   | |  _  d d d g |  _ i  |  _ |  j ƒ  d S(   sC   
+        :type path: string
+        :param path: the voice vdb patht   Ft   Mt   UN(   t   _patht   _genderst   _speakermodelst   _read_db(   t   selft   path(    (    s   voiceid_ilp/db.pyt   __init__   s    		c         C   s   |  j  S(   sá   Get the base path of the voice models db, where are stored the voice
+        model files, splitted in 3 directories according
+        to the gender (F, M, U).
+
+        :rtype: string
+        :returns: the path of the voice db(   R   (   R   (    (    s   voiceid_ilp/db.pyt   get_path#   s    c         C   s
+   t  ƒ  ‚ d S(   s‰   Return a dictionary where the keys are the genders and the values
+        are a list for every gender with the available speakers models.N(   t   NotImplementedError(   R   (    (    s   voiceid_ilp/db.pyt   get_speakers,   s    c         C   s
+   t  ƒ  ‚ d S(   s   Read the db structureN(   R   (   R   (    (    s   voiceid_ilp/db.pyR   1   s    c         C   s
+   t  ƒ  ‚ d S(   s  Add a voice model to the database.
+
+        :type basefilename: string
+        :param basefilename: basename including absolulute path of
+            the voice file
+
+        :type identifier: string
+        :param identifier: name or label of the speaker voice in the model, in
+            a single word without special characters
+
+        :type gender: char F, M or U
+        :param gender: the gender of the speaker in the model
+        
+        :type score: float
+        :param score: the score obtained in the voice matching
+        N(   R   (   R   t   basefilenamet
+   identifiert   gendert   score(    (    s   voiceid_ilp/db.pyt	   add_model5   s    c         C   s
+   t  ƒ  ‚ d S(   sÇ  Remove a speaker model from the database according to the score it
+        gets by matching vs the given feature file
+
+        :type wave_file: string
+        :param wave_file: the wave file
+
+        :type identifier: string
+        :param identifier: the name or label of the speaker
+
+        :type score: float
+        :param score: the score obtained in the voice matching
+
+        :type gender: char F, M or U
+        :param gender: the speaker genderN(   R   (   R   t	   wave_fileR   R   R   (    (    s   voiceid_ilp/db.pyt   remove_modelH   s    c         C   s
+   t  ƒ  ‚ d S(   s3  Match the given feature file vs the specified speaker model.
+
+        :type wave_file: string
+        :param wave_file: the wave file
+
+        :type identifier: string
+        :param identifier: the name or label of the speaker
+
+        :type gender: char F, M or U
+        :param gender: the speaker genderN(   R   (   R   R   R   R   (    (    s   voiceid_ilp/db.pyt   match_voiceY   s    c         C   s
+   t  ƒ  ‚ d S(   sê   Look for the best matching speaker in the db for the given
+        features file.
+
+        :type wave_file: string
+        :param wave_file: the wave file
+
+        :type gender: char F, M or U
+        :param gender: the speaker genderN(   R   (   R   R   R   (    (    s   voiceid_ilp/db.pyt   voice_lookupf   s    	c         C   s
+   t  ƒ  ‚ d S(   sÄ  Look for the best matching speaker in the db for the given features
+        files in the dictionary.
+
+        :type wave_dictionary: dictionary
+        :param wave_dictionary: a dict where the keys are the wave
+                file extracted from the wave, and the values are the relative
+                gender (char F, M or U).
+
+        :rtype: dictionary
+        :returns: a dictionary having a computed score for every voice model
+        in the dbN(   R   (   R   t   wave_dictionary(    (    s   voiceid_ilp/db.pyt
+   voices_lookupq   s    N(
+   t   __name__t
+   __module__t   __doc__R   R   R   R   t   NoneR   R   R   R   R   (    (    (    s   voiceid_ilp/db.pyR      s   								
+	t
+   GMMVoiceDBc           B   sh   e  Z d  Z d d „ Z d „  Z d „  Z d d d „ Z d „  Z d „  Z	 d „  Z
+ d	 „  Z d
+ „  Z RS(   sd   A Gaussian Mixture Model voices database.
+
+    :type path: string
+    :param path: the voice db pathi   c         C   s8   t  j |  | ƒ t |  d ƒ s+ i  |  _ n  | |  _ d  S(   Nt	   __threads(   R   R   t   hasattrt   _GMMVoiceDB__threadst   _GMMVoiceDB__maxthreads(   R   R
+   t   thrd_n(    (    s   voiceid_ilp/db.pyR   …   s    c         C   s   | d k r | |  _  n  d S(   s¦   Set the max number of threads running together for the lookup task.
+
+        :type t: integer
+        :param t: max number of threads allowed to run at the same time.i    N(   R%   (   R   t   trd(    (    s   voiceid_ilp/db.pyt   set_maxthreads‹   s    c         C   sŸ   x˜ |  j  D] } g  } t j j |  j | ƒ } y t j | ƒ } Wn$ t t f k
+ rg t j | ƒ n Xg  | D] } | j	 d ƒ ro | ^ qo |  j
+ | <q
+ Wd S(   s/   Read for any changes the db voice models files.s   .gmmN(   R	   t   osR
+   t   joinR   t   listdirt   OSErrort   IOErrort   makedirst   endswithR
+   (   R   t   gent   dir_R
+   t   f(    (    s   voiceid_ilp/db.pyR   “   s    c         C   s¿  | d k r t  St j | | ƒ | d k rH d „  } | | d ƒ } n  | d } t j j |  j ƒ  | | d ƒ } t j j |  j ƒ  | ƒ } t j j | | d ƒ }	 t j j | ƒ r{t j j |	 ƒ sÜ t j	 |	 ƒ n  t j
+ t j j | | d ƒ |	 ƒ t j |	 ƒ }
+ x+|
+ D]#} t j | t j j | d | ƒ | |  j ƒ  ƒ t
+ d | | | f d ƒ } xÏ | D]Ç }
+ |
+ j d ƒ rm|
+ j ƒ  d	 j d
+ ƒ d	 j d ƒ } |
+ j d | d	 ƒ } | t d | d	 d
+ ƒ } |
+ j d | ƒ d	 } t t t |
+ | | !ƒ ƒ t | ƒ ƒ d k  r4t j |	 ƒ t  SqmqmWqWy t j |	 ƒ Wn n Xt j | | g | ƒ |  j ƒ  t St j j |	 ƒ rt j |	 ƒ n  t j | | ƒ |  j ƒ  t St  S(   s.  Add a gmm model to db.
+
+        :type basefilename: string
+        :param basefilename: the wave file basename and path
+
+        :type identifier: string
+        :param identifier: the speaker in the wave
+
+        :type gender: char F, M or U
+        :param gender: the gender of the speaker (optional)t   unknownc         S   s²   i d d 6d d 6d d 6} t  |  d ƒ } xC | j ƒ  D]5 } | j d ƒ s7 | | j d ƒ d c d	 7<q7 q7 W| j ƒ  | d | d k r’ d S| d | d k  rª d Sd Sd
+ S(   s   Identify gender from seg filei    R   R   R   t   rs   ;;t    i   i   N(   t   opent	   readlinest
+   startswitht   splitt   close(   t   segfileR0   t   segt   line(    (    s   voiceid_ilp/db.pyt   _get_gender_from_seg¶   s    $
+s   .segs   .gmmt	   _tmp_gmmss   %s.ident.%s.%s.segR4   s   ;;i   t   :t   _s   score:s    = t   ]gìQ¸…ë±?N(   t   FalseR   t	   build_gmmR    R)   R
+   R*   R   t   existst   mkdirt	   split_gmmR+   t
+   wav_vs_gmmR6   R8   R9   t   indext   lent   abst   floatt   shutilt   rmtreet
+   merge_gmmsR   t   Truet   move(   R   R   R   R   R   R>   t   gmm_patht   orig_gmmt
+   folder_db_dirt
+   folder_tmpt   listgmmst   gmmR;   R=   t   snmt   idxt   iidx(    (    s   voiceid_ilp/db.pyR   ž   sZ    	
+
+
+	
+&/
+
+
+c         C   sà  t  j j |  j ƒ  | ƒ } t  j j t  j j | | d ƒ ƒ rÜt  j j | | d ƒ } t  j j | ƒ s{ t  j | ƒ n  t j t  j j | | d ƒ | ƒ t  j | ƒ } t  j j	 | ƒ d } t
+ }	 t | ƒ d k r…x?| D]7}
+ t j | t  j j | d |
+ ƒ | |  j ƒ  ƒ t
+ d | | |
+ f d ƒ } xã | D]Û } | j d ƒ r:| j ƒ  d j d ƒ d j d	 ƒ }
+ | j d
+ |
+ d ƒ } | t d
+ |
+ d d ƒ } | j d | ƒ d } t t t | | | !ƒ ƒ t | ƒ ƒ d
+ k  rt  j t  j j | |
+ ƒ ƒ t }	 qq:q:Wqâ Wg  } t  j | ƒ } x* | D]" }
+ | j t  j j | |
+ ƒ ƒ q9Wt j | t  j j | | d ƒ ƒ n<x9| D]1}
+ t j | t  j j | d |
+ ƒ | |  j ƒ  ƒ t
+ d | | |
+ f d ƒ } xÝ | D]Õ } | j d ƒ rä| j ƒ  d j d ƒ d j d	 ƒ }
+ | j d
+ |
+ d ƒ } | t d
+ |
+ d d ƒ } | j d | ƒ d } t t | | | !ƒ ƒ t | ƒ k r¹t  j t  j j | | d ƒ ƒ t }	 q¹qäqäWqŒWt j | ƒ |  j ƒ  |	 Sd S(   sn  Remove a voice model from the db.
+
+        :type wave_file: string
+        :param wave_file: the wave file name and path
+
+        :type identifier: string
+        :param identifier: the speaker in the wave
+
+        :type score: float
+        :param score: the value of
+
+        :type gender: char F, M or U
+        :param gender: the gender of the speaker (optional)s   .gmmR?   i    i   s   %s.ident.%s.%s.segR4   s   ;;R@   RA   s   score:s    = RB   gìQ¸…ë±?N(   R)   R
+   R*   R   RE   RF   R   RG   R+   t   splitextRC   RJ   RH   R6   R8   R9   RI   RK   RL   t   removeRP   t   appendRO   t   strRM   RN   R   (   R   R   R   R   R   RT   RU   RV   t   filebasenamet   removedRW   R;   R=   RX   RY   RZ   t
+   listgmms_path(    (    s   voiceid_ilp/db.pyR     sd    %
+	
+&/
+ 	
+	
+&% 
+
+c         C   s0  t  j j | ƒ d } yN t j | | d | |  j ƒ  ƒ d GHi  } t j | | d | d | ƒ Wn‘ t k
+ r÷ d GHd Gt	 ‚ t j
+ | ƒ t j | ƒ t j | ƒ t j | | d | |  j ƒ  ƒ d GHi  } t j | | d | d | ƒ n Xi  } x+ | D]# } d G| GH| j
+ | | j ƒ qW| S(	   sc  Match the voice (wave file) versus the gmm model of
+        'identifier' in db.
+
+        :type wave_file: string
+        :param wave_file: wave file extracted from the wave
+
+        :type identifier: string
+        :param identifier: the speaker in the wave
+
+        :type gender: char F, M or U
+        :param gender: the gender of the speaker (optional)i    s   .gmms   IN TRYt   .s   ValueError in MATCH_VOICEs   tring to fix... s   IN EXCEPTIONt   clust(   R)   R
+   R[   R   RH   R   R   t   manage_identR    t   et   _train_initt
+   _train_mapt   diarizationt   updatet   speakers(   R   R   R   R   t
+   wave_basenamet   clst   spkrsRc   (    (    s   voiceid_ilp/db.pyR   T  s4    
+	
+
+
+
+	
+	c         C   sR   i  } xE |  j  D]: } g  |  j | D] } t j j | ƒ d ^ q$ | | <q W| S(   s‡   Return a dictionary where the keys are the genders and the values
+        are a list of the available speakers models for every gender.i    (   R	   R
+   R)   R
+   R[   (   R   t   resultR0   t   m(    (    s   voiceid_ilp/db.pyR   ‡  s
+    5c   	   	      s°  |  j  ƒ  | } i  } i  ‰  ‡  f d †  } g  } x/| D]'} d ˆ  | | | <t j |  j ƒ |  j k  rÏ | j | | | ƒ t j d | d |  | | | f ƒ |  j | | | <|  j | | | j	 ƒ  q8 x, t j |  j ƒ |  j k rý t
+ j d ƒ qÒ W| j | | | ƒ t j d | d |  | | | f ƒ |  j | | | <|  j | | | j	 ƒ  q8 WxF | D]> } |  j | j ƒ  r—|  j | j
+ ƒ  n  | j ˆ  | ƒ qjW| S(   sn  Look for the best matching speaker in the db for the given
+        features file.
+
+        :type wave_file: string
+        :param wave_file: the wave file
+
+        :type gender: char F, M or U
+        :param gender: the speaker gender
+
+        :rtype: dictionary
+        :returns: a dictionary having a computed score for every voice
+                model in the db c            s%   |  j  | | | ƒ ˆ  | | | <d S(   s#   Internal routine to run in a ThreadN(   R   (   R   R   t   speakerR   (   t   out(    s   voiceid_ilp/db.pyt   _match_voice¡  s    	t   targett   argsi   N(   R   R    R   t
+   alive_threadsR$   R%   R]   t	   threadingt   Threadt   startt   timet   sleept   is_aliveR*   Ri   (	   R   R   R   Rj   t   resRr   t   keyst   spkt   thr(    (   Rq   s   voiceid_ilp/db.pyR     s2    
+
+	$	$
+c      
+      sò  i  ‰  i  } g  } ‡  f d †  } x>| D]6} | | } |  j  ƒ  | } d d l m } x| D]û }	 | d |	 | }
+ d ˆ  |
+ <| |  j ƒ |  j k  rå | j |
+ ƒ t j d | d |  | |	 | f ƒ |  j |
+ <|  j |
+ j	 ƒ  q_ x) | |  j ƒ |  j k rt
+ j d ƒ qè W| j |
+ ƒ t j d | d |  | |	 | f ƒ |  j |
+ <|  j |
+ j	 ƒ  q_ Wq( Wx5 | D]- } |  j | j ƒ  ri|  j | j
+ ƒ  qiqiWxQˆ  D]I} ˆ  | } | j d ƒ d }
+ |
+ | k rÝi  | |
+ <n  y | |
+ } WnA t t t t f k
+ r.} d	 | d
+ GH| GH| j GH| j GHn Xy | j | ƒ WnU t t t t f k
+ r—} d | d
+ GH| GH| GHd t | ƒ GH| j GH| j GHn Xy | | |
+ <Wq¡t t t t f k
+ ré} d
+ | d
+ GH| GH| j GH| j GHq¡Xq¡W| S(   s   Look for the best matching speaker in the db for the given features
+         files in the dictionary.
+
+        :type wave_dictionary: dictionary
+        :param wave_dictionary: a dict where the keys are the wave, and the values are the relative
+               gender (char F, M or U).
+
+        :rtype: dictionary
+        :returns: a dictionary having a computed score for every voice
+                 model in the dbc            s[   y/ | d | | } |  j  | | | ƒ ˆ  | <Wn% t k
+ rV } | GHt j d ƒ n Xd S(   s#   Internal routine to run in a Threads   ***iÿÿÿÿN(   R   t	   Exceptiont   syst   exit(   R   R   Rp   R   t
+   speakerkeyRe   (   Rq   (    s   voiceid_ilp/db.pyt
+   __match_voiceÑ  s    iÿÿÿÿ(   Ru   s   ***Rs   Rt   i   i    s    c = res[wave_key] missing out[RB   s   c.update(arr) missing out[s   arr s   res[wave_key] = c missing out[N(   R   t
+   voiceid.utilsRu   R    R$   R%   R]   Rv   Rw   Rx   Ry   Rz   R{   R*   R9   t	   NameErrort   KeyErrort   AttributeErrort	   TypeErrort   __dict__Rt   Ri   R^   (   R   R   R|   R}   t   _GMMVoiceDB__match_voiceR   R   Rj   t   aliveR~   Rƒ   R   t   arrt   wave_keyt   cRe   (    (   Rq   s   voiceid_ilp/db.pyR   Á  sp    
+
+
+
+
+	
+	
+
+
+
+
+
+
+N(
+   R   R   R   R   R(   R   R    R   R   R   R   R   R   (    (    (    s   voiceid_ilp/db.pyR!      s   		f	P	3			1(   R   t   decimalR    t    R   R   R   R)   RM   Rv   Ry   R   t   objectR   R!   (    (    (    s   voiceid_ilp/db.pyt   <module>   s   j
