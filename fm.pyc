@@ -1,0 +1,263 @@
+ó
+àãëWc           @   sC  d  Z  d d l Z d d l Z d d l Z d d l m Z d d l Z d d l Z e ƒ  Z d Z	 d Z
+ d Z d „  Z d „  Z
+ d	 „  Z d
+ „  Z d „  Z d „  Z d
+ „  Z d „  Z d d „ Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d „  Z d d d „ Z d „  Z  d „  Z! d d „ Z" d S(   s˜  
+# ================================================================================#
+#-- PROJECT NAME : Diarization package using i-vector clustering. 
+#-- BACKEND : LIUM Speaker Diarization
+#-- TASK : This module contains the the low level file manipulation functions
+
+#-- Author : Sruthi.S
+#-- Date : September 27th, 2016
+# ================================================================================#
+iÿÿÿÿN(   t   VConft   1Gt   2024t   javac         C   sA   d d l  } | j |  ƒ } | j ƒ  } | j ƒ  | d | d S(   sn   Extract the duration of a wave file in sec.
+
+    :type wavfile: string
+    :param wavfile: the wave input fileiÿÿÿÿNi   i   (   t   wavet   opent	   getparamst   close(   t   wavfileR   t   w_filet   par(    (    s   voiceid_ilp/fm.pyt
+   wave_duration   s
+    
+c         C   sc   g  |  D] } | j  d d ƒ ^ q } d j | ƒ } d t | ƒ d t | ƒ } t j | ƒ d S(   sä   Take a list of waves and append them to a brend new destination wave.
+
+    :type input_waves: list
+    :param input_waves: the wave files list
+
+    :type wavename: string
+    :param wavename: the output wave file to be generatedt    s   \ s   sox N(   t   replacet   joint   strt   utilst   start_subprocess(   t   input_wavest   wavenamet   w_namest   wavest   commandline(    (    s   voiceid_ilp/fm.pyt   merge_waves&   s    
+%c         C   s‘   t  j j |  ƒ \ } } | d k r6 t j |  ƒ r6 nB | d k rO | d 7} n  t j d |  d d d d | d ƒ t j | d ƒ | | S(	   sh  Take any kind of video or audio and convert it to a
+    "RIFF (little-endian) data, WAVE audio, Microsoft PCM, 16 bit,
+    mono 16000 Hz" wave file using gstreamer. If you call it passing a wave it
+    checks if in good format, else it converts the wave in the good format.
+
+    :type filename: string
+    :param filename: the input audio/video file to converts   .wavt   _s   gst-launch filesrc location='s>   ' ! decodebin ! audioresample ! 'audio/x-raw-int,rate=16000' !s    audioconvert !s?    'audio/x-raw-int,rate=16000,depth=16,signed=true,channels=1' !s    wavenc ! filesink location=s   .wav (   t   ost   patht   splitextR   t   is_good_waveR   t   ensure_file_exists(   t   filenamet   namet   ext(    (    s   voiceid_ilp/fm.pyt   file2wav7   s    
+#c   
+      C   sb  d } d } xì |  D]ä } y t  | d ƒ } Wn t t f k
+ rH q n X| j d ƒ } | d k rs t d ƒ ‚ n  | j d ƒ } t j d | ƒ } | t | d ƒ 7} | j d	 ƒ }	 d }
+ x# |	 râ |
+ |	 7}
+ | j d	 ƒ }	 qÀ W| |
+ 7} | j ƒ  q Wt j	 d | ƒ } t
+ j d
+ | ƒ t  | d ƒ } | j d ƒ | j | ƒ | j | ƒ | j ƒ  d S(
+   sê   Merge two or more gmm files to a single gmm file with more voice models.
+
+    :type input_files: list
+    :param input_files: the gmm file list to merge
+
+    :type output_file: string
+    :param output_file: the merged gmm output filei    t    t   rbi   t   GMMVECT_s   different kinds of models!i   s   >ii   s   echo "hello" | sudo chmod 777 t   wN(
+   R   t   IOErrort   OSErrort   readt	   Exceptiont   structt   unpackt   intR   t   packR   t   systemt   write(
+   t   input_filest   output_filet   num_gmmt   gmmst   ifilet	   current_ft   kindt   linet   numt   bytet	   all_othert   num_gmm_stringt   new_gmm(    (    s   voiceid_ilp/fm.pyt
+   merge_gmmsN   s6    
+	
+
+
+
+
+c         C   s±   t  |  d ƒ } | j d ƒ | j d ƒ } t j d | ƒ } | d k rX t d ƒ ‚ n  | j d ƒ | j d ƒ t j d | j d ƒ ƒ } | j | d ƒ | j d ƒ } | S(	   si   Return gender of a given gmm file.
+
+    :type input_file: string
+    :param input_file: the gmm file
+    R#   i   i   s   >ii   s   Loop needed for gmmsi    (   i   (   R   R(   R*   R+   R)   (   t
+   input_filet   gmmR;   R2   t   str_lent   gender(    (    s   voiceid_ilp/fm.pyt
+   get_gendery   s    
+
+
+c         C   sØ  d } |  j  d ƒ } | d k r8 t d d | ƒ ‚ n  |  j  d ƒ } |  j  d ƒ } |  j  t t j d | ƒ d ƒ ƒ } |  j  d ƒ } |  j  d ƒ } |  j  d ƒ } |  j  d ƒ }	 |  j  d ƒ }
+ t t j d | ƒ d ƒ } | | | | | | | } | |	 |
+ } d }
+ | | k rqx  t | ƒ D]= } |
+ d 7}
+ | } x$ | | k  ri|
+ d 7}
+ | d 7} qFWq-WnR xO t | ƒ D]A } |
+ d 7}
+ | } x( | | d k  r¾|
+ d 7}
+ | d 7} q—Wq~W| |  j  |
+ d ƒ S(	   s    Read a gaussian in binary formati    i   t   GAUSS___s   Error: the gaussian is nots    of GAUSS___ key  (%s)i   s   >ii   (   R(   R)   R,   R*   R+   t   range(   t   g_filet   fullt   g_keyt   g_idt   g_lengtht   g_namet   g_gendert   g_kindt   g_dimt   g_countt   g_weightt	   dimensiont   g_headert   datasizet   jayt   tee(    (    s   voiceid_ilp/fm.pyt   _read_gaussian‘   s>    %
+
+
+
+c         C   sŒ   |  j  d ƒ } | d k r2 t d d | ƒ ‚ n  |  j  d ƒ } | | } x: t t t j d | ƒ d ƒ ƒ D] } | t |  ƒ 7} qn W| S(   s,   Read a gaussian container in a binary formati   t   GAUSSVECs   Error: the gaussian containers    is not of GAUSSVEC kind %si   s   >ii    (   R(   R)   RD   R,   R*   R+   RU   (   RE   t   chkt   gcst   stufft   index(    (    s   voiceid_ilp/fm.pyt   _read_gaussian_containerµ   s    
+)c         C   sù   i  } |  j  d ƒ } | d k r0 t d ƒ ‚ n  |  j  d ƒ } |  j  d ƒ } |  j  t t j d | ƒ d ƒ ƒ } | | d <|  j  d ƒ } |  j  d ƒ } |  j  d ƒ } |  j  d ƒ }	 | | | | | | | |	 }
+ |
+ | d	 <t |  ƒ | d
+ <| S(   s   Read a gmm in a binary formati   t   GMM_____s.   Error: Gmm section doesn't match GMM_____ kindi   s   >ii    R   i   t   headert   content(   R(   R)   R,   R*   R+   R[   (   RE   t   myfileR6   t   hash_t   lengthR   t   gent   gausskt   dimt   compt   gvect_header(    (    s   voiceid_ilp/fm.pyt	   _read_gmmÄ   s     %
+"
+c         C   se  t  |  d ƒ } | j d ƒ } | d k r9 t d ƒ ‚ n  | j d ƒ } t t j d | ƒ d ƒ } | t j d d ƒ } g  } x' t | ƒ D] } | j t	 | ƒ ƒ q W| j
+ ƒ  |  d	  } d }	 t j j
+ | ƒ \ }
+ } | d k ra| }
+ xp | D]e } t j j |
+ d
+ | |	 f ƒ } t  | d ƒ }
+ |
+ j | | d | d
+ ƒ |
+ j
+ ƒ  |	 d 7}	 qõ Wn  d S(   s  Split a gmm file into gmm files with a single voice model.
+
+    :type input_file: string
+    :param input_file: the gmm file containing various voice models
+
+    :type output_dir: string
+    :param output_dir: the directory where is splitted the gmm input fileR#   i   R$   s   Error: Not a GMMVECT_ file!i   s   >ii    i   iüÿÿÿs
+   %s%04d.gmmR%   R]   R^   N(   R   R(   R)   R,   R*   R+   R-   RD   t   appendRg   R   R   R   t   splitt   NoneR   R/   (   R>   t
+   output_dirRE   t   keyt   sizeR8   t   main_headert   filest
+   file_basenameRZ   t   basedirR   t   newnamet   gmm_f(    (    s   voiceid_ilp/fm.pyt	   split_gmmÚ   s,    
+
+
+
+
+c   
+      C   sP  t  |  d ƒ } t  |  d d ƒ } | j d ƒ } | j | ƒ | j d ƒ } t j d | ƒ } | d k rz t d ƒ ‚ n  | j | ƒ | j d ƒ } | j | ƒ | j d ƒ } | j | ƒ t j d | j d ƒ ƒ }	 | j |	 d	 ƒ }
+ t j d t | ƒ ƒ } | j | ƒ | j | ƒ | j ƒ  } | j | ƒ | j ƒ  | j ƒ  d
+ S(   sé   Rename a gmm with a new speaker identifier(name) associated.
+
+    :type input_file: string
+    :param input_file: the gmm file to rename
+
+    :type identifier: string
+    :param identifier: the new name or identifier of the gmm modelR#   s   .newR%   i   i   s   >ii   s   Loop needed for gmmsi    N(   i   (	   R   R(   R/   R*   R+   R)   R-   t   lenR   (
+   R>   t
+   identifierR?   R<   R6   R;   R2   t   gmm_1t   nothingR@   R   t   new_lenR:   (    (    s   voiceid_ilp/fm.pyt
+   rename_gmmý   s,    
+
+
+
+
+
+
+
+c         C   s/   t  |  ƒ t |  | ƒ t |  ƒ t |  ƒ d S(   s  Build a gmm (Gaussian Mixture Model) file from a given wave with a
+    speaker identifier  associated.
+
+    :type filebasename: string
+    :param filebasename: the input file basename
+
+    :type identifier: string
+    :param identifier: the name or identifier of the speakerN(   t   diarization_standardt	   ident_segt   _train_initt
+   _train_map(   t   filebasenameRv   (    (    s   voiceid_ilp/fm.pyt	   build_gmm  s    
+
+
+
+c      	   C   sI  |  d } t  | d ƒ } x| j ƒ  D]} | j d ƒ s& | j ƒ  } | d } t | d ƒ d } t | d ƒ d } y& t j j |  | ƒ } t j | ƒ Wn1 t j	 k
+ rÒ }	 |	 j
+ d k rÆ qÓ t j	 ‚ n Xt j j |  | d	 | t | ƒ t | ƒ f ƒ }
+ d
+ |  |
+ | | f } t j
+ | ƒ t j |
+ ƒ q& q& W| j ƒ  d S(   sã   Take a wave and splits it in small waves in this directory structure
+    <file base name>/<cluster>/<cluster>_<start time>.wav
+
+    :type filebasename: string
+    :param filebasename: filebasename of the seg and wav input filess
+   .ev_is.segt   rs   ;;i   i   id   i   i   s   %s_%07d.%07d.wavs   sox %s.wav %s trim  %s %sN(   R   t	   readlinest
+   startswithRi   t   floatR   R   R   t   makedirst   errort   errnoR,   R   R   R   R   (   R   t   segfilet   segR7   t   arrt   clustt   startt   endt   mydirt   errt	   wave_pathR   (    (    s   voiceid_ilp/fm.pyt   seg2trim+  s0    
+
+
+
+
+c         C   s  d „  } t  j j |  ƒ d } t |  d ƒ } g  } x? | j ƒ  D]1 } | j d ƒ sA | j ƒ  } | j | ƒ qA qA W| j ƒ  | j	 d | d t
+ ƒ | d } t | d ƒ } d }	 x¨ | D]  } |	 d	 }	 t | d
+ ƒ d }
+ |
+ t | d ƒ d } | j t
+ |	 ƒ d
+ ƒ | j t j |
+ ƒ d t j | ƒ d
+ ƒ | j | d d
+ ƒ | j d
+ ƒ q¼ W| j ƒ  t j | d ƒ d S(   sˆ   Take a seg file and convert it in a subtitle file (srt).
+
+    :type segfile: string
+    :param segfile: the segmentation file to convertc         S   s   t  |  d ƒ S(   s1   Help function for sort, to extract time from linei   (   R,   (   t   aline(    (    s   voiceid_ilp/fm.pyt   readtimeR  s    i    R   s   ;;Rl   t   reverses   .srtR%   i   i   id   i   s   
+s    --> i   N(   R   R   R   R   R‚   Rƒ   Ri   Rh   R   t   sortt   FalseR„   R/   R   R   t
+   humanize_timeR   (   Rˆ   R“   t   basenameR‰   t   linesR7   RŠ   t
+   fileoutputt   srtfilet   rowRŒ   R   (    (    s   voiceid_ilp/fm.pyt   seg2srtM  s0    	
+
+
+
+%
+c         C   s   t  |  | |  d ƒ d S(   s_   Substitute cluster names with speaker names ang generate a
+    "<filebasename>.ident.seg" file.s   .identN(   t   ident_seg_rename(   R   Rv   (    (    s   voiceid_ilp/fm.pyR|   n  s    c   
+      C   s  t  |  d d ƒ } g  } | j ƒ  } xW | D]O } xF | j ƒ  D]8 } | j d ƒ r? | j d ƒ d } | j | ƒ q? q? Wq, W| j ƒ  t  | d d ƒ }	 | j ƒ  x> | D]6 } x  | D] } | j | | ƒ } qº W|	 j | ƒ q­ W|	 j ƒ  t	 j
+ | d ƒ d S(   sP   Take a seg file and substitute the clusters with a given name or
+    identifier.s   .segR   s   cluster:t   :i   R%   N(   R   R‚   Ri   Rƒ   Rh   R   R”   R
+   R/   R   R   (
+   R   Rv   t
+   outputnamet   seg_ft   clustersR™   R7   Rl   t   clut   output(    (    s   voiceid_ilp/fm.pyRž   t  s"    
+
+
+
+
+
+c         C   s   d „  } t  |  d ƒ } | j ƒ  } | j ƒ  t t d „  | j ƒ  ƒ ƒ } | | | ƒ } |  d } t  | d ƒ } | j | ƒ | j ƒ  t j | ƒ d S(   s6   Substitute cluster names with real names in subtitles.c            sC   t  j d j t t  j ˆ  ƒ ƒ ƒ } ‡  f d †  } | j | |  ƒ S(   sy   Take a text and replace words that match a key in a dictionary with
+        the associated value, return the changed textt   |c            s   ˆ  |  j  d ƒ d S(   s   not documentedi    s   
+(   t   group(   t   match(   t   word_dic(    s   voiceid_ilp/fm.pyt	   translate‘  s    (   t   ret   compileR   t   mapt   escapet   sub(   t   textR¨   t   recR©   (    (   R¨   s   voiceid_ilp/fm.pyt
+   replace_wordsŒ  s    $s   .srtc         S   s    |  \ } } t  | ƒ d | f S(   Ns   
+(   R   (   t   .0Rl   t   value(    (    s   voiceid_ilp/fm.pyt   <lambda>š  s    s
+   .ident.srtR%   N(	   R   R(   R   t   dictR¬   t   itemsR/   R   R   (   R   t	   key_valueR±   t   file_original_subtitlet   original_subtitleR¯   t   out_filet   fout(    (    s   voiceid_ilp/fm.pyt   srt2subnames‰  s    	
+
+
+
+c         C   sk   t  j s d GHn  t |  ƒ t j j |  ƒ d } t  j sB d GHn  t | ƒ t  j s] d GHn  t | ƒ d S(   s³   Take a video or audio file and converts it into smaller waves according
+    to the diarization process.
+
+    :type filename: string
+    :param filename: the input file audio/videos   *** converting video to wav ***i    s   *** diarization ***s   *** trim ***N(   t
+   CONFIGURATIONt
+   QUIET_MODER!   R   R   R   t   diarizationR‘   (   R   Rp   (    (    s   voiceid_ilp/fm.pyt	   file2trim¤  s    	
+	
+	c         C   sA   t  j t d t d t j d d |  ƒ t  j |  d ƒ d S(   sô   Take a wave file in the correct format and build a segmentation file.
+    The seg file shows how much speakers are in the audio and when they talk.
+
+    :type filebasename: string
+    :param filebasename: the basename of the wav file to processs    -Xmxs    -jar s+    fr.lium.spkDiarization.system.Diarization s>   --fInputMask=./%s.wav --sOutputMask=./%s.seg --doCEClustering s   .segN(   R   R   t   JAVA_EXEt	   JAVA_MEM1R½   t   LIUM_JARR   (   R   (    (    s   voiceid_ilp/fm.pyR{   ¶  s    &t   3t   75c         C   s…  d } d } d } d } d } t  j j |  ƒ s@ t  j |  ƒ n  d GHt j t d t d t j	 d	 d
+ | d | d |  ƒ t j
+ |  d
+ ƒ d GHt j t d t d t j	 d d | d |  ƒ t j
+ |  d ƒ d GHt j t d t d t j	 d d d | d d |  ƒ t j
+ |  d ƒ d GHd } t j t d t d t j	 d d | d d | d |  ƒ t j
+ |  d ƒ d  GHt j t d t d t j	 d d | d! d" | d |  ƒ t j
+ |  d# ƒ d$ GHt j t d t d t j	 d% d& d | d' d( |  ƒ t j
+ |  d) ƒ d* GHt j t d t d t j	 d+ d& d | d' d, |  ƒ t j
+ |  d- ƒ d. GHt j t d t d t j	 d/ d | d0 d1 |  ƒ t j
+ |  d2 ƒ d3 GHt j t d t d t j	 d/ d | d4 d5 d6 t j d |  ƒ t j
+ |  d7 ƒ d8 GHt j t d t d t j	 d9 d | d4 d: d; d< |  ƒ t j
+ |  d= ƒ d> GHt j t d t d t j	 d? d@ | dA dB t j d |  ƒ t j
+ |  dC ƒ dD GHt j t d t d t j	 dE dF | dG d | dH dI dJ dK dL dM |  ƒ t j
+ |  dN ƒ t j
+ st  j |  ƒ }	 x |	 D] }
+ t  j |
+ ƒ qgWn  d  S(O   Ns&   audio16kHz2sphinx,1:1:0:0:0:0,13,0:0:0s   sphinx,1:1:0:0:0:0,13,0:0:0s   sphinx,1:3:2:0:0:0,13,0:0:0:0s   sphinx,1:3:2:0:0:0,13,1:1:0:0s   sphinx,1:3:2:0:0:0,13,1:1:300:4s   compute the MFCCs    -Xmxs    -classpath s5    fr.lium.spkDiarization.tools.Wave2FeatureSet --help s!   --fInputMask=%s.wav --fInputDesc=s%    --fOutputMask=%s.mfcc --fOutputDesc=R   s   .mfccs   check the MFCCs3    fr.lium.spkDiarization.programs.MSegInit   --help s"   --fInputMask=%s.mfcc --fInputDesc=s&    --sInputMask= --sOutputMask=%s.i.seg s   .i.segs+   GLR based segmentation, make small segmentss2    fr.lium.spkDiarization.programs.MSeg --kind=FULL s+   --sMethod=GLR  --help --fInputMask=%s.mfcc s
+   --fInputDesc=s    --sInputMask=%s.i.seg s   --sOutputMask=%s.s.seg s   .s.segs   Segmentation: linear clusteringt   2s/    fr.lium.spkDiarization.programs.MClust --help s.    --sInputMask=%s.s.seg --sOutputMask=%s.l.seg s   --cMethod=l --cThr=s   .l.segs   hierarchical clusterings.    --sInputMask=%s.l.seg --sOutputMask=%s.h.seg s    --cMethod=h --cThr=s   .h.segs   initialize GMMs3    fr.lium.spkDiarization.programs.MTrainInit --help s,   --nbComp=8 --kind=DIAG --fInputMask=%s.mfcc s    --sInputMask=%s.h.seg s   --tOutputMask=%s.init.gmms s
+   .init.gmmss   EM computations1    fr.lium.spkDiarization.programs.MTrainEM --help s0   --tOutputMask=%s.gmms --tInputMask=%s.init.gmms s   .gmmss   Viterbi decodings0    fr.lium.spkDiarization.programs.MDecode --help s.    --sInputMask=%s.h.seg --sOutputMask=%s.d.seg s%   --dPenality=250 --tInputMask=%s.gmms s   .d.segs!   Speech/Music/Silence segmentations    --fInputMask=%s.mfcc s/   --sInputMask=%s.i.seg --sOutputMask=%s.pms.seg s"   --dPenality=10,10,50 --tInputMask=s   .pms.segs2   filter spk segmentation according pms segmentations-    fr.lium.spkDiarization.tools.SFilter --help sE   --fltSegMinLenSpeech=150 --fltSegMinLenSil=25 --sFilterClusterName=j sB   --fltSegPadding=25 --sFilterMask=%s.pms.seg --sInputMask=%s.d.seg s   --sOutputMask=%s.flt.seg s   .flt.segs   Set gender and bandwiths/    fr.lium.spkDiarization.programs.MScore --help s$   --sGender --sByCluster --fInputDesc=s.    --fInputMask=%s.mfcc --sInputMask=%s.flt.seg s$   --sOutputMask=%s.g.seg --tInputMask=s   .g.segs   ILP ClusteringsG    fr.lium.spkDiarization.programs.ivector.ILPClustering --cMethod=es_iv s	   --ilpThr=s9    --help --sInputMask=%s.g.seg --sOutputMask=%s.ev_is.seg s    --tInputMask=./ubm/wld.gmm s5   --nEFRMask=mat/wld.efn.xml --ilpGLPSolProgram=glpsol s7   --nMahanalobisCovarianceMask=./mat/wld.mahanalobis.mat s0   --tvTotalVariabilityMatrixMask=./mat/wld.tv.mat s*   --ilpOutputProblemMask=%s.ilp.problem.txt s,   --ilpOutputSolutionMask=%s.ilp.solution.txt s
+   .ev_is.seg(   R   R   t   isdirt   mkdirR   R   RÁ   RÂ   R½   RÃ   R   t   SMS_GMMSt   GENDER_GMMSt   KEEP_INTERMEDIATE_FILESt   listdirt   remove(   R   t   ht   ct
+   fDescStartt   fDesct   fDescDt	   fDescLastt   fDescCLRt   lt   f_listR    (    (    s   voiceid_ilp/fm.pyR¿   Æ  sx    6.6::662A:=	N	
+c         C   sT   t  j t d t d t j d d d d t j d |  ƒ t  j |  d ƒ d	 S(
+   s$   Train the initial speaker gmm model.s    -Xmxs   m -cp s3    fr.lium.spkDiarization.programs.MTrainInit --help s.   --sInputMask=%s.ident.seg --fInputMask=%s.wav s:   --fInputDesc="audio16kHz2sphinx,1:3:2:0:0:0,13,1:1:300:4" s!   --emInitMethod=copy --tInputMask=s    --tOutputMask=%s.init.gmm s	   .init.gmmN(   R   R   RÁ   t	   JAVA_MEM2R½   RÃ   t   UBM_PATHR   (   R   (    (    s   voiceid_ilp/fm.pyR}   e  s    9c         C   s<   t  j t d t d t j d d d d d |  ƒ d S(	   s6   Train the speaker model using a MAP adaptation method.s    -Xmxs   m -cp s2    fr.lium.spkDiarization.programs.MTrainMAP --help s.   --sInputMask=%s.ident.seg --fInputMask=%s.wav s:   --fInputDesc="audio16kHz2sphinx,1:3:2:0:0:0,13,1:1:300:4" s?   --tInputMask=%s.init.gmm --emCtrl=1,5,0.01 --varCtrl=0.01,10.0 s   --tOutputMask=%s.gmm N(   R   R   RÁ   R×   R½   RÃ   (   R   (    (    s   voiceid_ilp/fm.pyR~   q  s    c         C   sÊ   t  j } | d k r | } n  t j j | ƒ d } d G| GHd G| GHt j d t d t  j	 d d | d | d	 d
+ | d | d | d t  j
+ d
+ |  ƒ t j |  d | d | d ƒ d S(   sì  Match a wav file and a given gmm model file and produce a segmentation
+    file containing the score obtained.
+
+    :type filebasename: string
+    :param filebasename: the basename of the wav file to process
+
+    :type gmm_file: string
+    :param gmm_file: the path of the gmm file containing the voice model
+
+    :type gender: char
+    :param gender: F, M or U, the gender of the voice model
+
+    :type custom_db_dir: None or string
+    :param custom_db_dir: the voice models database to usei   t   databaset   gmm_names   echo "hello" | sudo -S s    -Xmx256M -cp sB    fr.lium.spkDiarization.programs.MScore --sInputMask=%s.ev_is.seg s+   --fInputMask=%s.wav --sOutputMask=%s.ident.t   .s$   .ev_is.seg --sOutputFormat=seg,UTF8 s@   --fInputDesc=audio2sphinx,1:3:2:0:0:0,13,1:0:300:4 --tInputMask=t   /s
+    --sTop=8,s    --sSetLabel=add --sByCluster s   .ident.s
+   .ev_is.segN(   R½   t   DB_DIRRj   R   R   Ri   R   R   RÁ   RÃ   RØ   R   (   R   t   gmm_fileRA   t
+   custom_db_dirRÙ   RÚ   (    (    s   voiceid_ilp/fm.pyt
+   wav_vs_gmm{  s    				Y(#   t   __doc__R   Rª   R*   t   __init__R    R   t   sysR½   RÂ   R×   RÁ   R   R   R!   R=   RB   RU   R[   Rg   Rj   Rt   Rz   R€   R‘   R   R|   Rž   R¼   RÀ   R{   R¿   R}   R~   Rà   (    (    (    s   voiceid_ilp/fm.pyt   <module>   s@   					+		$		#			"	!					Ÿ		
